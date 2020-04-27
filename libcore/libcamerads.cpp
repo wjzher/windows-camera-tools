@@ -91,6 +91,26 @@ public:
     //
     // ICameraDs methods
     //
+    HRESULT Initialize(LONG id)
+    {
+        HRESULT hr = S_OK;
+
+        do
+        {
+            hr = FindCaptureDevice(id);
+            if (FAILED(hr)) break;
+
+            hr = GetInterfaces();
+            if (FAILED(hr)) break;
+
+            m_bInitialized = TRUE;
+        } while (false);
+
+        hr = m_bInitialized ? S_OK : E_FAIL;
+
+        return hr;
+    }
+
     HRESULT Initialize(wchar_t *pszFriendlyName)
     {
         HRESULT hr = S_OK;
@@ -814,6 +834,165 @@ private:
     {
         if (!m_pVideoProcAmp) return E_POINTER;
         return m_pVideoProcAmp->GetRange(lProperty, plMin, plMax, plDelta, plDefault, plFlags);
+    }
+
+    HRESULT FindCaptureDevice(LONG id)
+    {
+        IBaseFilter **ppSrcFilter = &m_pSrcFilter;
+        HRESULT hr = S_OK;
+        int iNumVidList = 0;
+
+        IBaseFilter *pSrc = NULL;
+        IMoniker* pMoniker = NULL;
+        ICreateDevEnum *pDevEnum = NULL;
+        IEnumMoniker *pClassEnum = NULL;
+
+        BOOL bDeviceFound = FALSE;
+        VARIANT varName;
+        VARIANT varName2;
+
+        if (!ppSrcFilter) return E_POINTER;
+
+        //
+        // Create the system device enumerator
+        //
+        hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC, IID_ICreateDevEnum, (void**)&pDevEnum);
+        if (FAILED(hr)) return hr;
+
+        //
+        // Create an enumerator for the video capture devices
+        //
+        hr = pDevEnum->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &pClassEnum, 0);
+        if (FAILED(hr))
+        {
+            SAFE_RELEASE(pDevEnum);
+            return hr;
+        }
+
+        //
+        // If there are no enumerators for the requested type, then CreateClassEnumerator will succeed,
+        // but pClassEnum will be NULL.
+        //
+        if (pClassEnum == NULL)
+        {
+            SAFE_RELEASE(pClassEnum);
+            SAFE_RELEASE(pDevEnum);
+            hr = E_FAIL;
+            return hr;
+        }
+
+        //
+        // Use the first video capture device on the device list. Note that if the Next() call succeeds but there are no
+        // monikers, it will return S_FALSE (which is not a failure). Therefore, we check that the return code is S_OK
+        // instead of using SUCCEEDED() macro.
+        //
+        pClassEnum->Reset();
+        ULONG cFetched;
+
+        LONG i = -1;
+        while (hr = pClassEnum->Next(1, &pMoniker, &cFetched), hr == S_OK)
+        {
+            IPropertyBag *pPropBag = NULL;
+            HRESULT result = E_FAIL;
+            i++;
+
+#pragma warning(suppress: 6387)
+            result = pMoniker->BindToStorage(0, 0, IID_IPropertyBag, (void **)&pPropBag);
+            if (FAILED(result))
+            {
+                SAFE_RELEASE(pMoniker);
+                continue;
+            }
+
+            VariantInit(&varName);
+            VariantInit(&varName2);
+
+            result = pPropBag->Read(L"FriendlyName", &varName, 0);
+            if (FAILED(result))
+            {
+                VariantClear(&varName);
+                VariantClear(&varName2);
+                SAFE_RELEASE(pPropBag);
+                continue;
+            }
+
+            result = pPropBag->Read(L"DevicePath", &varName2, 0);
+            if (FAILED(result))
+            {
+                VariantClear(&varName);
+                VariantClear(&varName2);
+                SAFE_RELEASE(pPropBag);
+                continue;
+            }
+
+            if (varName.bstrVal == NULL || varName2.bstrVal == NULL)
+            {
+                VariantClear(&varName);
+                VariantClear(&varName2);
+                SAFE_RELEASE(pPropBag);
+                continue;
+            }
+
+            if (id != i)
+            {
+                VariantClear(&varName);
+                VariantClear(&varName2);
+                SAFE_RELEASE(pPropBag);
+                continue;
+            }
+
+            VariantClear(&varName);
+            VariantClear(&varName2);
+            SAFE_RELEASE(pPropBag);
+
+            bDeviceFound = TRUE;
+            break;
+        }
+
+        SAFE_RELEASE(pClassEnum);
+        SAFE_RELEASE(pDevEnum);
+
+        if (bDeviceFound)
+        {
+#pragma warning(suppress: 6387)
+            hr = pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void**)&pSrc);
+
+            if (FAILED(hr))
+            {
+                EventWriteHresultError(M, FL, FN, L"BindToObject", hr);
+            }
+
+            *ppSrcFilter = pSrc;
+
+            hr = m_pSrcFilter->QueryInterface(IID_IAMCameraControl, (void**)&m_pCameraControl);
+
+            if (hr != S_OK)
+            {
+                m_pCameraControl = NULL;
+            }
+
+            hr = m_pSrcFilter->QueryInterface(IID_IAMVideoProcAmp, (void**)&m_pVideoProcAmp);
+
+            if (hr != S_OK)
+            {
+                m_pVideoProcAmp = NULL;
+            }
+
+            hr = m_pSrcFilter->QueryInterface(IID_IKsControl, (void**)&m_pIKsControl);
+
+            if (hr != S_OK)
+            {
+                m_pIKsControl = NULL;
+            }
+        }
+        else
+        {
+            hr = E_FAIL;
+        }
+
+        SAFE_RELEASE(pMoniker);
+
+        return hr;
     }
 
     HRESULT FindCaptureDevice(wchar_t *pszFriendlyName)

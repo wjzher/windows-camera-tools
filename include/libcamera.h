@@ -53,6 +53,7 @@ struct IBufferLock : public IUnknown {
 //
 struct ICameraDs : public IUnknown {
     virtual HRESULT Initialize(wchar_t *pszFriendlyName) = 0;
+    virtual HRESULT Initialize(LONG id) = 0;
     virtual HRESULT IsSystemCamera(wchar_t *pszFriendlyName, PBOOL pbSysCam, wchar_t *pszDevPath, DWORD cchDevPathSize) = 0;
     virtual HRESULT SetPrivacy(LONG lNewValue) = 0;
     virtual HRESULT GetPrivacy(LONG *plValue, LONG *plFlags) = 0;

@@ -141,6 +141,7 @@ static ARG_DISPATCH_TABLE pdt[] = {
     { L"mediainfo", DispatchMediaInfo },
     { L"flash", DispatchFlash },
     { L"autoexposure", DispatchExposure },
+    { L"autoexposure2", DispatchExposure2 },
     { L"privacy", DispatchPrivacy },
     { L"issyscam", DispatchIsSystemCamera },
     { L"proppage", DispatchPropertyPage },
