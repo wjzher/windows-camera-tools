@@ -62,6 +62,7 @@ struct ICameraDs : public IUnknown {
     virtual HRESULT GetContrast(LONG *plValue, LONG *plFlags) = 0;
     virtual HRESULT SetSaturation(LONG lNewValue) = 0;
     virtual HRESULT GetSaturation(LONG *plValue, LONG *plFlags) = 0;
+    virtual HRESULT SetAutoExposure(LONG lNewValue) = 0;
     virtual HRESULT SetExposure(LONG lNewValue) = 0;
     virtual HRESULT GetExposure(LONG *plValue, LONG *plFlags) = 0;
     virtual HRESULT SetFlash(CameraFlashEnum newValue) = 0;

@@ -23,6 +23,7 @@ using namespace std;
 #include "fnames.h"
 #include "mediainfo.h"
 #include "proppage.h"
+#include "exposure.h"
 #include "common.h"
 #include "..\etw\jytrace.h"
 
@@ -139,6 +140,7 @@ static ARG_DISPATCH_TABLE pdt[] = {
     { L"fnames", DispatchFriendlyNames },
     { L"mediainfo", DispatchMediaInfo },
     { L"flash", DispatchFlash },
+    { L"autoexposure", DispatchExposure },
     { L"privacy", DispatchPrivacy },
     { L"issyscam", DispatchIsSystemCamera },
     { L"proppage", DispatchPropertyPage },

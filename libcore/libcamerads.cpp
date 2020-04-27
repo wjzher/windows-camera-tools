@@ -308,6 +308,26 @@ public:
         return m_pCameraControl->Set(KSPROPERTY_CAMERACONTROL_EXPOSURE, lNewValue, KSPROPERTY_CAMERACONTROL_FLAGS_MANUAL);
     }
 
+    HRESULT SetAutoExposure(LONG lNewValue)
+    {
+        if (!m_bInitialized) return E_NOT_VALID_STATE;
+        if (!m_pCameraControl) return E_POINTER;
+
+        LONG plValue, plFlags;
+
+        HRESULT hr = E_FAIL;
+        hr = GetExposure(&plValue, &plFlags);
+        if (SUCCEEDED(hr))
+        {
+            plFlags = lNewValue ? KSPROPERTY_CAMERACONTROL_FLAGS_AUTO : KSPROPERTY_CAMERACONTROL_FLAGS_MANUAL;
+            return m_pCameraControl->Set(KSPROPERTY_CAMERACONTROL_EXPOSURE, plValue, plFlags);
+        }
+        else
+        {
+            return hr;
+        }
+    }
+
     HRESULT GetExposure(LONG *plValue, LONG *plFlags)
     {
         if (!m_bInitialized) return E_NOT_VALID_STATE;
