@@ -4,8 +4,6 @@
 #include "..\include\libcamera.h"
 #include "common.h"
 
-#pragma comment(lib, "..\\out\\libcore.lib")
-
 /*
  * Implements an set auto exposure function.
  */

@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F64215BC-5062-40DB-8FCB-7A49DFC5B684}</ProjectGuid>
     <RootNamespace>pycamera</RootNamespace>
-    <PythonVersion>3.7</PythonVersion>
+    <PythonVersion>3.8</PythonVersion>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -195,6 +195,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\camera-cmd\common.cpp" />
+    <ClCompile Include="..\libcore\libcamerads.cpp" />
+    <ClCompile Include="..\libcore\libcameramf.cpp" />
+    <ClCompile Include="..\libcore\libcore.cpp" />
     <ClCompile Include="pycamera.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
